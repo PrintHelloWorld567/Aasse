@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Party Fruit Guessing Game</title>
+<title>Fruit Guessing Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
@@ -25,6 +25,7 @@ body {
     object-fit: contain;
     border-radius: 12px;
     border: 5px solid #00ff88;
+    box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
     background: white;
 }
 
@@ -50,9 +51,9 @@ body {
     border-radius: 12px;
     cursor: pointer;
 }
+
 .correct { color: #00ff88; }
 .listening { color: #00aaff; }
-
 </style>
 </head>
 <body>
@@ -67,12 +68,13 @@ body {
 <button id="startBtn">START</button>
 
 <script>
-// Clean simple fruit images
+// Only real fruits — no phones, laptops, or random stuff
 const objects = [
 { name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
 { name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
 { name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg" },
 { name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Lemons.jpg" },
+{ name:"lime", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Lime-Whole.jpg" },
 { name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg" },
 { name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg" },
 { name:"strawberry", img:"https://upload.wikimedia.org/wikipedia/commons/2/29/PerfectStrawberry.jpg" },
@@ -156,7 +158,6 @@ function restartRecognition(){
         try { recognition.start(); } catch(e){}
     }
 }
-
 </script>
 
 </body>

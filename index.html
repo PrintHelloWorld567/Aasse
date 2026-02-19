@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Voice Wordle Game</title>
+<title>Ultimate Voice Wordle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
     margin:0;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial Black', Arial, sans-serif;
     background:#111;
     color:white;
     display:flex;
@@ -18,26 +18,113 @@ body {
     text-align:center;
 }
 
-#header { font-size: 48px; margin-top: 20px; color:#ffdd00; text-shadow: 0 0 10px #ffdd00, 0 0 20px #ffdd00; }
-#wordDisplay { font-size: 64px; margin: 20px; letter-spacing: 10px; color:#00ff88; text-shadow:0 0 15px #00ff88; }
-#timerBar { width:80%; height:20px; background:#333; border-radius:10px; overflow:hidden; margin: 20px 0; }
-#timerFill { width:100%; height:100%; background:#ff4444; transition: width 1s linear; }
-#guesses { font-size: 24px; margin: 10px 0; max-height: 200px; overflow-y:auto; width: 80%; text-align:left; padding:10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
-#status { font-size: 32px; margin:10px 0; color:#00aaff; }
-#startBtn { font-size:28px; padding:15px 40px; background:#ffdd00; color:black; border:none; border-radius:15px; cursor:pointer; margin:20px; text-shadow:0 0 5px #000; }
-.correct { color:#00ff88; font-weight:bold; }
-.listening { color:#00aaff; }
+#header {
+    font-size: 50px;
+    margin-top: 20px;
+    color:#ffdd00;
+    text-shadow: 0 0 15px #ffdd00, 0 0 30px #ffdd00;
+}
+
+#wordDisplay {
+    font-size: 70px;
+    margin: 20px;
+    letter-spacing: 15px;
+    color:#00ff88;
+    text-shadow:0 0 20px #00ff88;
+}
+
+#timerBar {
+    width:80%;
+    height:20px;
+    background:#333;
+    border-radius:10px;
+    overflow:hidden;
+    margin: 15px 0;
+    box-shadow: 0 0 10px #ff4444 inset;
+}
+
+#timerFill {
+    width:100%;
+    height:100%;
+    background:#ff4444;
+    transition: width 1s linear;
+}
+
+#guesses {
+    font-size: 26px;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y:auto;
+    width: 80%;
+    text-align:left;
+    padding:15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,255,136,0.3);
+}
+
+#status {
+    font-size: 36px;
+    margin:10px 0;
+    color:#00aaff;
+}
+
+#inputContainer {
+    margin: 15px;
+    display:flex;
+    gap:10px;
+}
+
+#textInput {
+    font-size:28px;
+    padding:10px;
+    border-radius:12px;
+    border:none;
+    width:200px;
+}
+
+#startBtn, #submitBtn {
+    font-size:28px;
+    padding:12px 35px;
+    background:#ffdd00;
+    color:black;
+    border:none;
+    border-radius:15px;
+    cursor:pointer;
+    text-shadow:0 0 5px #000;
+}
+
+.correct {
+    color:#00ff88;
+    font-weight:bold;
+    text-shadow:0 0 10px #00ff88;
+}
+
+.listening {
+    color:#00aaff;
+}
+
+.hidden {
+    display:none;
+}
+
 </style>
 </head>
 <body>
 
-<div id="header">🎤 Voice Wordle!</div>
+<div id="header">🎤 Ultimate Voice Wordle!</div>
 <div id="wordDisplay">A _ _ _ _</div>
 
 <div id="timerBar"><div id="timerFill"></div></div>
 
 <div id="status">Tap START</div>
+
 <div id="guesses"></div>
+
+<div id="inputContainer" class="hidden">
+    <input type="text" id="textInput" placeholder="Type your guess">
+    <button id="submitBtn">Submit</button>
+</div>
 
 <button id="startBtn">START ROUND</button>
 
@@ -64,87 +151,122 @@ const status = document.getElementById("status");
 const guessesDiv = document.getElementById("guesses");
 const startBtn = document.getElementById("startBtn");
 const timerFill = document.getElementById("timerFill");
+const inputContainer = document.getElementById("inputContainer");
+const textInput = document.getElementById("textInput");
+const submitBtn = document.getElementById("submitBtn");
 
-// --- Functions ---
-function newObject(){
+// --- Helpers ---
+function newWord(){
     currentWord = words[Math.floor(Math.random()*words.length)];
     revealedFirstLetter = currentWord[0].toUpperCase();
     wordDisplay.textContent = revealedFirstLetter + " _ _ _ _";
+    guesses = [];
+    guessesDiv.innerHTML = "";
 }
 
 function updateTimerBar(){
     timerFill.style.width = (timer/30*100)+"%";
 }
 
-// --- Continuous recognition restart ---
+function addGuess(word){
+    const cleaned = word.toLowerCase().trim();
+    if(cleaned.length!==5) return;
+    if(cleaned[0].toLowerCase()===revealedFirstLetter.toLowerCase()) return;
+    if(guesses.includes(cleaned)) return;
+
+    guesses.push(cleaned);
+    const guessElem = document.createElement("div");
+    guessElem.textContent = cleaned.toUpperCase();
+    if(cleaned===currentWord) guessElem.classList.add("correct");
+    guessesDiv.appendChild(guessElem);
+
+    if(cleaned===currentWord){
+        status.textContent = "🎉 CORRECT! 🎉";
+        clearInterval(timerInterval);
+        stopRecognition();
+        startBtn.style.display = "inline-block";
+    }
+}
+
+// --- Voice recognition ---
 function startRecognition(){
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SpeechRecognition){
-        alert("Speech recognition not supported. Use Chrome.");
+    if(!SpeechRecognition) {
+        console.log("SpeechRecognition not supported, using text input");
+        inputContainer.classList.remove("hidden");
+        status.textContent = "Type your guess below!";
         return;
     }
 
     recognition = new SpeechRecognition();
-    recognition.continuous = false; // use non-continuous to avoid mobile stopping
+    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = "en-US";
 
     recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript.toLowerCase().trim().replace(/[^a-z]/g,"");
-        if(text.length === 5 && !guesses.includes(text) && text[0].toLowerCase() !== revealedFirstLetter.toLowerCase()){
-            guesses.push(text);
-            const guessElem = document.createElement("div");
-            guessElem.textContent = text.toUpperCase();
-            if(text===currentWord) guessElem.classList.add("correct");
-            guessesDiv.appendChild(guessElem);
-
-            if(text===currentWord){
-                status.textContent = "🎉 CORRECT! 🎉";
-                clearInterval(timerInterval);
-                startBtn.style.display = "inline-block";
-            }
-        }
+        const text = event.results[0][0].transcript;
+        addGuess(text);
     };
 
     recognition.onerror = recognition.onend = () => {
-        // Restart immediately after stopping
-        if(timer>0) recognition.start();
-    }
+        if(timer>0) recognition.start(); // restart automatically
+    };
 
     recognition.start();
+    status.textContent = "🎤 Listening...";
+    listening = true;
 }
 
-// --- Start round ---
-startBtn.onclick = async () => {
-    startBtn.style.display = "none";
-    guesses = [];
-    guessesDiv.innerHTML = "";
-    timer = 30;
-    updateTimerBar();
+function stopRecognition(){
+    if(recognition){
+        recognition.onend=null;
+        recognition.onerror=null;
+        recognition.stop();
+        listening=false;
+    }
+}
 
-    newObject();
-    status.textContent = "Listening...";
+// --- Text input fallback ---
+submitBtn.onclick = ()=>{
+    const val = textInput.value;
+    textInput.value="";
+    addGuess(val);
+}
+
+textInput.addEventListener("keyup",(e)=>{
+    if(e.key==="Enter") submitBtn.click();
+})
+
+// --- Start round ---
+startBtn.onclick = async ()=>{
+    startBtn.style.display = "none";
+    inputContainer.classList.add("hidden"); // hide until needed
+    status.textContent = "Starting...";
+    newWord();
+    timer=30;
+    updateTimerBar();
 
     try{
         await navigator.mediaDevices.getUserMedia({audio:true});
     } catch(e){
-        alert("Please allow microphone access.");
-        return;
+        console.log("Mic blocked or unsupported, using text input");
+        inputContainer.classList.remove("hidden");
+        status.textContent = "Type your guess below!";
     }
 
-    // Timer countdown
+    // Timer
     clearInterval(timerInterval);
-    timerInterval = setInterval(()=>{
+    timerInterval=setInterval(()=>{
         timer--;
         updateTimerBar();
         if(timer<=0){
             clearInterval(timerInterval);
             status.textContent = "Time's up! Word was: " + currentWord.toUpperCase();
-            startBtn.style.display = "inline-block";
+            stopRecognition();
+            startBtn.style.display="inline-block";
         }
     },1000);
 
-    // Start recognition
     startRecognition();
 }
 </script>

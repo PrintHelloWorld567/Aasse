@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Party Object Guessing Game</title>
+<title>Party Fruit Guessing Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
@@ -14,8 +14,8 @@ body {
 }
 
 #score {
-    font-size: 40px;
-    margin-top: 10px;
+    font-size: 42px;
+    margin-top: 15px;
 }
 
 #image {
@@ -24,8 +24,8 @@ body {
     max-height: 70vh;
     object-fit: contain;
     border-radius: 15px;
-    border: 4px solid #00ff88;
-    box-shadow: 0 0 40px rgba(0, 255, 136, 0.4);
+    border: 5px solid #00ff88;
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
     background: white;
 }
 
@@ -37,7 +37,7 @@ body {
 
 #heard {
     font-size: 20px;
-    opacity: 0.7;
+    opacity: 0.8;
     margin-top: 5px;
 }
 
@@ -73,18 +73,15 @@ body {
 <button id="startBtn">START</button>
 
 <script>
-// Simple everyday objects (fruits & common items)
+// Real fruit images that load reliably
 const objects = [
-{name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg"},
-{name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg"},
-{name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg"},
-{name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/8/85/Lemon.jpg"},
-{name:"lime", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Lime-Whole.jpg"},
-{name:"grape", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg"},
-{name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg"},
-{name:"cup", img:"https://upload.wikimedia.org/wikipedia/commons/4/45/Coffee_cup_%28pixabay%29.jpg"},
-{name:"bottle", img:"https://upload.wikimedia.org/wikipedia/commons/4/44/Water_bottle.jpg"},
-{name:"shoe", img:"https://upload.wikimedia.org/wikipedia/commons/a/a2/Sneakers_%28Nike%29.jpg"}
+    { name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
+    { name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
+    { name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg" },
+    { name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Lemons.jpg" },
+    { name:"lime", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Lime-Whole.jpg" },
+    { name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg" },
+    { name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg" }
 ];
 
 let current;
@@ -108,19 +105,16 @@ newObject();
 startBtn.onclick = async () => {
     startBtn.style.display = "none";
 
-    // Ask for microphone permission
-    try{
-        await navigator.mediaDevices.getUserMedia({audio:true});
-    }
-    catch(e){
-        alert("Microphone permission denied. Please allow mic access.");
+    try {
+        await navigator.mediaDevices.getUserMedia({ audio:true });
+    } catch(e) {
+        alert("Please allow microphone access.");
         return;
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
     if(!SpeechRecognition){
-        alert("Speech recognition not supported. Use Chrome (desktop or Android). iPhone Safari is not supported.");
+        alert("Speech recognition not supported. Use Chrome on Android or desktop.");
         return;
     }
 
@@ -136,7 +130,7 @@ startBtn.onclick = async () => {
     };
 
     recognition.onresult = (event) => {
-        const text = event.results[event.results.length-1][0].transcript.toLowerCase().trim();
+        const text = event.results[event.results.length-1][0].transcript.toLowerCase();
         heard.innerText = "Heard: " + text;
 
         if(text.includes(current.name)){
@@ -154,23 +148,16 @@ startBtn.onclick = async () => {
         }
     };
 
-    recognition.onerror = () => {
-        restartRecognition();
-    };
-
-    recognition.onend = () => {
-        restartRecognition();
-    };
-
+    recognition.onerror = () => restartRecognition();
+    recognition.onend = () => restartRecognition();
     recognition.start();
 };
 
 function restartRecognition(){
     if(recognition && listening){
-        try{ recognition.start(); } catch(e){}
+        try { recognition.start(); } catch(e){}
     }
 }
-
 </script>
 
 </body>

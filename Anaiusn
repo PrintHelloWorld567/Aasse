@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Party Object Guessing Game</title>
+
+<style>
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+
+#score{
+    font-size:35px;
+    margin-top:20px;
+}
+
+#image{
+    margin-top:20px;
+    max-width:90vw;
+    max-height:50vh;
+    border-radius:20px;
+}
+
+#status{
+    font-size:28px;
+    margin-top:20px;
+    height:40px;
+}
+
+#heard{
+    font-size:18px;
+    opacity:0.6;
+    margin-top:10px;
+}
+
+#startBtn{
+    margin-top:30px;
+    font-size:28px;
+    padding:20px 40px;
+    background:#00ff88;
+    color:black;
+    border:none;
+    border-radius:15px;
+}
+.correct{
+    color:#00ff88;
+}
+</style>
+
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+
+<img id="image">
+
+<div id="status">Tap Start</div>
+
+<div id="heard"></div>
+
+<button id="startBtn">START</button>
+
+<script>
+
+const objects = [
+{name:"apple",img:"https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600"},
+{name:"car",img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600"},
+{name:"chair",img:"https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=600"},
+{name:"phone",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600"},
+{name:"bottle",img:"https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600"},
+{name:"banana",img:"https://images.unsplash.com/photo-1574226516831-e1dff420e12?w=600"},
+{name:"keyboard",img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600"},
+{name:"shoe",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600"},
+{name:"clock",img:"https://images.unsplash.com/photo-1501139083538-0139583c060f?w=600"},
+{name:"lamp",img:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600"}
+];
+
+let current;
+let score=0;
+
+const image=document.getElementById("image");
+const scoreText=document.getElementById("score");
+const status=document.getElementById("status");
+const heard=document.getElementById("heard");
+const startBtn=document.getElementById("startBtn");
+
+function newObject(){
+current=objects[Math.floor(Math.random()*objects.length)];
+image.src=current.img;
+}
+
+newObject();
+
+startBtn.onclick=()=>{
+
+startBtn.style.display="none";
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition=new SpeechRecognition();
+
+recognition.continuous=true;
+recognition.interimResults=true;
+recognition.lang="en-US";
+
+status.innerText="Listening...";
+
+recognition.onresult=(event)=>{
+
+const text=event.results[event.results.length-1][0].transcript.toLowerCase();
+
+heard.innerText="Heard: "+text;
+
+if(text.includes(current.name)){
+
+score++;
+scoreText.innerText="Score: "+score;
+
+status.innerText="CORRECT!";
+status.className="correct";
+
+setTimeout(()=>{
+status.innerText="Listening...";
+status.className="";
+newObject();
+},1000);
+
+}
+
+};
+
+recognition.onend=()=>{
+recognition.start();
+};
+
+recognition.start();
+
+};
+
+</script>
+
+</body>
+</html>

@@ -2,108 +2,152 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fruit Guessing Game</title>
+<title>Voice Wordle Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
-    margin: 0;
-    background: #111;
-    color: white;
+    margin:0;
     font-family: Arial, sans-serif;
-    text-align: center;
+    background:#111;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    height:100vh;
+    text-align:center;
 }
 
-#score {
-    font-size: 40px;
-    margin-top: 15px;
+#header {
+    font-size: 48px;
+    margin-top: 20px;
+    color:#ffdd00;
+    text-shadow: 0 0 10px #ffdd00, 0 0 20px #ffdd00;
 }
 
-#image {
-    margin-top: 10px;
-    width: 90vw;
-    max-height: 70vh;
-    object-fit: contain;
-    border-radius: 12px;
-    border: 5px solid #00ff88;
-    box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
-    background: white;
+#wordDisplay {
+    font-size: 64px;
+    margin: 20px;
+    letter-spacing: 10px;
+    color:#00ff88;
+    text-shadow:0 0 15px #00ff88;
+}
+
+#timerBar {
+    width:80%;
+    height:20px;
+    background:#333;
+    border-radius:10px;
+    overflow:hidden;
+    margin: 20px 0;
+}
+
+#timerFill {
+    width:100%;
+    height:100%;
+    background:#ff4444;
+    transition: width 1s linear;
+}
+
+#guesses {
+    font-size: 24px;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y:auto;
+    width: 80%;
+    text-align:left;
+    padding:10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
 }
 
 #status {
-    font-size: 36px;
-    margin-top: 15px;
-    height: 50px;
-}
-
-#heard {
-    font-size: 20px;
-    opacity: 0.8;
-    margin-top: 5px;
+    font-size: 32px;
+    margin:10px 0;
+    color:#00aaff;
 }
 
 #startBtn {
-    margin-top: 20px;
-    font-size: 26px;
-    padding: 18px 35px;
-    background: #00ff88;
-    color: black;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
+    font-size:28px;
+    padding:15px 40px;
+    background:#ffdd00;
+    color:black;
+    border:none;
+    border-radius:15px;
+    cursor:pointer;
+    margin:20px;
+    text-shadow:0 0 5px #000;
 }
 
-.correct { color: #00ff88; }
-.listening { color: #00aaff; }
+.correct {
+    color:#00ff88;
+    font-weight:bold;
+}
 </style>
 </head>
 <body>
 
-<div id="score">Score: 0</div>
+<div id="header">🎤 Voice Wordle!</div>
+<div id="wordDisplay">A _ _ _ _</div>
 
-<img id="image">
+<div id="timerBar"><div id="timerFill"></div></div>
 
 <div id="status">Tap START</div>
-<div id="heard"></div>
+<div id="guesses"></div>
 
-<button id="startBtn">START</button>
+<button id="startBtn">START ROUND</button>
 
 <script>
-// Only real fruits — no phones, laptops, or random stuff
-const objects = [
-{ name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
-{ name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
-{ name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg" },
-{ name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Lemons.jpg" },
-{ name:"lime", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Lime-Whole.jpg" },
-{ name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg" },
-{ name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg" },
-{ name:"strawberry", img:"https://upload.wikimedia.org/wikipedia/commons/2/29/PerfectStrawberry.jpg" },
-{ name:"kiwi", img:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Kiwi_aka.jpg" },
-{ name:"pear", img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Conference_pear.jpg" },
-{ name:"peach", img:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Nectarine_and_cross_section.jpg" }
+// --- Word list (5-letter words) ---
+const words = [
+"apple","brave","crane","dance","eagle","flame","glove","honey","ivory","jelly",
+"knife","lemon","mango","novel","ocean","piano","queen","raven","snake","tiger",
+"ultra","vivid","whale","xenon","yacht","zebra"
 ];
 
-let current;
-let score = 0;
+// Game state
+let currentWord = "";
+let revealedFirstLetter = "";
+let guesses = [];
 let recognition;
 let listening = false;
+let timer = 30;
+let timerInterval;
 
-const image = document.getElementById("image");
-const scoreText = document.getElementById("score");
+// DOM elements
+const wordDisplay = document.getElementById("wordDisplay");
 const status = document.getElementById("status");
-const heard = document.getElementById("heard");
+const guessesDiv = document.getElementById("guesses");
 const startBtn = document.getElementById("startBtn");
+const timerFill = document.getElementById("timerFill");
 
-function newObject(){
-    current = objects[Math.floor(Math.random()*objects.length)];
-    image.src = current.img;
-}
-
-newObject();
-
+// Start new round
 startBtn.onclick = async () => {
     startBtn.style.display = "none";
+    guesses = [];
+    guessesDiv.innerHTML = "";
+    timer = 30;
+    updateTimerBar();
 
+    // Pick a new word
+    currentWord = words[Math.floor(Math.random()*words.length)];
+    revealedFirstLetter = currentWord[0].toUpperCase();
+    wordDisplay.textContent = revealedFirstLetter + " _ _ _ _";
+    status.textContent = "Listening...";
+
+    // Timer countdown
+    clearInterval(timerInterval);
+    timerInterval = setInterval(()=>{
+        timer--;
+        updateTimerBar();
+        if(timer <= 0){
+            clearInterval(timerInterval);
+            status.textContent = "Time's up! Word was: " + currentWord.toUpperCase();
+            startBtn.style.display = "inline-block";
+        }
+    },1000);
+
+    // Ask for mic
     try{
         await navigator.mediaDevices.getUserMedia({audio:true});
     } catch(e){
@@ -111,9 +155,10 @@ startBtn.onclick = async () => {
         return;
     }
 
+    // Speech recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!SpeechRecognition){
-        alert("Speech recognition not supported. Use Chrome on Android or desktop.");
+        alert("Speech recognition not supported. Use Chrome.");
         return;
     }
 
@@ -122,41 +167,40 @@ startBtn.onclick = async () => {
     recognition.interimResults = true;
     recognition.lang = "en-US";
 
-    recognition.onstart = () => {
-        listening = true;
-        status.innerText = "Listening...";
-        status.className = "listening";
-    };
-
+    recognition.onstart = () => { listening=true; }
     recognition.onresult = (event) => {
-        const text = event.results[event.results.length-1][0].transcript.toLowerCase();
-        heard.innerText = "Heard: " + text;
+        const text = event.results[event.results.length-1][0].transcript.toLowerCase().trim();
+        const cleaned = text.replace(/[^a-z]/gi,"");
 
-        if(text.includes(current.name)){
-            score++;
-            scoreText.innerText = "Score: " + score;
+        if(cleaned.length===5 && !guesses.includes(cleaned) && cleaned[0].toLowerCase()!==revealedFirstLetter.toLowerCase()){
+            guesses.push(cleaned);
+            const guessElem = document.createElement("div");
+            guessElem.textContent = cleaned.toUpperCase();
+            if(cleaned===currentWord) guessElem.classList.add("correct");
+            guessesDiv.appendChild(guessElem);
 
-            status.innerText = "CORRECT!";
-            status.className = "correct";
-
-            setTimeout(()=>{
-                newObject();
-                status.innerText = "Listening...";
-                status.className = "listening";
-            }, 1000);
+            if(cleaned===currentWord){
+                status.textContent = "🎉 CORRECT! 🎉";
+                clearInterval(timerInterval);
+                startBtn.style.display = "inline-block";
+            }
         }
     };
 
-    recognition.onerror = () => { restartRecognition(); };
-    recognition.onend = () => { restartRecognition(); };
+    recognition.onerror = () => { restartRecognition(); }
+    recognition.onend = () => { restartRecognition(); }
 
     recognition.start();
-};
+}
 
 function restartRecognition(){
     if(recognition && listening){
-        try { recognition.start(); } catch(e){}
+        try{ recognition.start(); } catch(e){}
     }
+}
+
+function updateTimerBar(){
+    timerFill.style.width = (timer/30*100)+"%";
 }
 </script>
 

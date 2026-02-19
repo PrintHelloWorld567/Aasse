@@ -6,42 +6,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
+body {
     margin:0;
     background:#111;
     color:white;
     font-family:Arial, sans-serif;
     text-align:center;
+    overflow-x:hidden;
 }
 
-#score{
-    font-size:36px;
+#score {
+    font-size:40px;
     margin-top:20px;
 }
 
-#image{
+#image {
     margin-top:20px;
     width:80vw;
     max-height:60vh;
     object-fit:contain;
     border-radius:20px;
-    border:4px solid #00ff88;
-    box-shadow:0 0 50px rgba(0,255,136,0.4);
+    border:5px solid #00ff88;
+    box-shadow:0 0 60px rgba(0,255,136,0.5);
+    background:white;
 }
 
-#status{
+#status {
     font-size:32px;
     margin-top:20px;
     height:40px;
 }
 
-#heard{
-    font-size:20px;
-    opacity:0.7;
+#heard {
+    font-size:18px;
+    opacity:0.8;
     margin-top:10px;
 }
 
-#startBtn{
+#startBtn {
     margin-top:30px;
     font-size:28px;
     padding:20px 40px;
@@ -52,11 +54,11 @@ body{
     cursor:pointer;
 }
 
-.correct{
+.correct {
     color:#00ff88;
 }
 
-.listening{
+.listening {
     color:#00aaff;
 }
 
@@ -75,19 +77,23 @@ body{
 <button id="startBtn">START</button>
 
 <script>
-// Reliable images with fruits and common objects
+// Clean, obvious objects with guaranteed loading images
 const objects = [
 {name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg"},
 {name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg"},
 {name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg"},
 {name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg"},
-{name:"carrot", img:"https://upload.wikimedia.org/wikipedia/commons/7/70/Carrot.jpg"},
-{name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg"},
+{name:"car", img:"https://upload.wikimedia.org/wikipedia/commons/3/3e/Toyota_Corolla_2019_front_view.jpg"},
 {name:"chair", img:"https://upload.wikimedia.org/wikipedia/commons/5/5a/Chair_Example.jpg"},
-{name:"shoe", img:"https://upload.wikimedia.org/wikipedia/commons/a/a2/Sneakers_%28Nike%29.jpg"},
 {name:"cup", img:"https://upload.wikimedia.org/wikipedia/commons/4/45/Coffee_cup_%28pixabay%29.jpg"},
 {name:"bottle", img:"https://upload.wikimedia.org/wikipedia/commons/4/44/Water_bottle.jpg"},
-{name:"phone", img:"https://upload.wikimedia.org/wikipedia/commons/f/f8/IPhone_12_Pro_%28silver%29.jpg"}
+{name:"phone", img:"https://upload.wikimedia.org/wikipedia/commons/f/f8/IPhone_12_Pro_%28silver%29.jpg"},
+{name:"shoe", img:"https://upload.wikimedia.org/wikipedia/commons/a/a2/Sneakers_%28Nike%29.jpg"},
+{name:"carrot", img:"https://upload.wikimedia.org/wikipedia/commons/7/70/Carrot.jpg"},
+{name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg"},
+{name:"backpack", img:"https://upload.wikimedia.org/wikipedia/commons/1/18/Backpack.jpg"},
+{name:"keyboard", img:"https://upload.wikimedia.org/wikipedia/commons/5/5e/Computer_keyboard.jpg"},
+{name:"mouse", img:"https://upload.wikimedia.org/wikipedia/commons/5/5b/Computer_mouse.jpg"}
 ];
 
 let current;
@@ -157,7 +163,6 @@ startBtn.onclick = async () => {
                 status.className = "listening";
             },1000);
         }
-
     };
 
     recognition.onerror = () => {
@@ -176,7 +181,6 @@ function restartRecognition(){
         try{ recognition.start(); } catch(e){}
     }
 }
-
 </script>
 
 </body>

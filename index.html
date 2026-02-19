@@ -6,50 +6,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 body{
     margin:0;
-    background:#0f0f0f;
+    background:#111;
     color:white;
     font-family:Arial, sans-serif;
     text-align:center;
 }
 
 #score{
-    font-size:32px;
-    margin-top:15px;
+    font-size:36px;
+    margin-top:20px;
 }
 
 #image{
-    margin-top:15px;
-    width:90vw;
-    max-height:50vh;
+    margin-top:20px;
+    width:80vw;
+    max-height:60vh;
     object-fit:contain;
-    border-radius:15px;
-    box-shadow:0 0 25px rgba(255,255,255,0.15);
+    border-radius:20px;
+    border:4px solid #00ff88;
+    box-shadow:0 0 50px rgba(0,255,136,0.4);
 }
 
 #status{
-    font-size:26px;
-    margin-top:15px;
-    height:35px;
+    font-size:32px;
+    margin-top:20px;
+    height:40px;
 }
 
 #heard{
-    font-size:18px;
+    font-size:20px;
     opacity:0.7;
     margin-top:10px;
-    padding:0 10px;
 }
 
 #startBtn{
-    margin-top:25px;
-    font-size:26px;
-    padding:18px 35px;
+    margin-top:30px;
+    font-size:28px;
+    padding:20px 40px;
     background:#00ff88;
     color:black;
     border:none;
-    border-radius:12px;
+    border-radius:15px;
+    cursor:pointer;
 }
 
 .correct{
@@ -75,21 +75,19 @@ body{
 <button id="startBtn">START</button>
 
 <script>
-
-// object database
+// Reliable images with fruits and common objects
 const objects = [
-{name:"apple",img:"https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=800"},
-{name:"car",img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"},
-{name:"chair",img:"https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800"},
-{name:"phone",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800"},
-{name:"bottle",img:"https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800"},
-{name:"banana",img:"https://images.unsplash.com/photo-1574226516831-e1dff420e12?w=800"},
-{name:"keyboard",img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800"},
-{name:"shoe",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800"},
-{name:"clock",img:"https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800"},
-{name:"lamp",img:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"},
-{name:"mouse",img:"https://images.unsplash.com/photo-1527814050087-3793815479db?w=800"},
-{name:"backpack",img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800"}
+{name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg"},
+{name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg"},
+{name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg"},
+{name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg"},
+{name:"carrot", img:"https://upload.wikimedia.org/wikipedia/commons/7/70/Carrot.jpg"},
+{name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg"},
+{name:"chair", img:"https://upload.wikimedia.org/wikipedia/commons/5/5a/Chair_Example.jpg"},
+{name:"shoe", img:"https://upload.wikimedia.org/wikipedia/commons/a/a2/Sneakers_%28Nike%29.jpg"},
+{name:"cup", img:"https://upload.wikimedia.org/wikipedia/commons/4/45/Coffee_cup_%28pixabay%29.jpg"},
+{name:"bottle", img:"https://upload.wikimedia.org/wikipedia/commons/4/44/Water_bottle.jpg"},
+{name:"phone", img:"https://upload.wikimedia.org/wikipedia/commons/f/f8/IPhone_12_Pro_%28silver%29.jpg"}
 ];
 
 let current;
@@ -104,9 +102,7 @@ const heard = document.getElementById("heard");
 const startBtn = document.getElementById("startBtn");
 
 function newObject(){
-
     current = objects[Math.floor(Math.random()*objects.length)];
-
     image.src = current.img;
 }
 
@@ -116,6 +112,7 @@ startBtn.onclick = async () => {
 
     startBtn.style.display = "none";
 
+    // Ask for microphone permission
     try{
         await navigator.mediaDevices.getUserMedia({audio:true});
     }
@@ -127,12 +124,11 @@ startBtn.onclick = async () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if(!SpeechRecognition){
-        alert("Speech recognition not supported. Use Safari or Chrome.");
+        alert("Speech recognition not supported. Use Chrome (desktop or Android). iPhone Safari is not supported.");
         return;
     }
 
     recognition = new SpeechRecognition();
-
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "en-US";
@@ -146,11 +142,9 @@ startBtn.onclick = async () => {
     recognition.onresult = (event) => {
 
         const text = event.results[event.results.length-1][0].transcript.toLowerCase().trim();
-
         heard.innerText = "Heard: " + text;
 
         if(text.includes(current.name)){
-
             score++;
             scoreText.innerText = "Score: " + score;
 
@@ -162,7 +156,6 @@ startBtn.onclick = async () => {
                 status.innerText = "Listening...";
                 status.className = "listening";
             },1000);
-
         }
 
     };
@@ -179,16 +172,9 @@ startBtn.onclick = async () => {
 };
 
 function restartRecognition(){
-
     if(recognition && listening){
-
-        try{
-            recognition.start();
-        }
-        catch(e){}
-
+        try{ recognition.start(); } catch(e){}
     }
-
 }
 
 </script>

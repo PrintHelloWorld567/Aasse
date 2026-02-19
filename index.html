@@ -14,7 +14,7 @@ body {
 }
 
 #score {
-    font-size: 42px;
+    font-size: 40px;
     margin-top: 15px;
 }
 
@@ -23,9 +23,8 @@ body {
     width: 90vw;
     max-height: 70vh;
     object-fit: contain;
-    border-radius: 15px;
+    border-radius: 12px;
     border: 5px solid #00ff88;
-    box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
     background: white;
 }
 
@@ -43,22 +42,17 @@ body {
 
 #startBtn {
     margin-top: 20px;
-    font-size: 28px;
+    font-size: 26px;
     padding: 18px 35px;
     background: #00ff88;
     color: black;
     border: none;
-    border-radius: 15px;
+    border-radius: 12px;
     cursor: pointer;
 }
+.correct { color: #00ff88; }
+.listening { color: #00aaff; }
 
-.correct {
-    color: #00ff88;
-}
-
-.listening {
-    color: #00aaff;
-}
 </style>
 </head>
 <body>
@@ -73,15 +67,18 @@ body {
 <button id="startBtn">START</button>
 
 <script>
-// Real fruit images that load reliably
+// Clean simple fruit images
 const objects = [
-    { name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
-    { name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
-    { name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg" },
-    { name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Lemons.jpg" },
-    { name:"lime", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Lime-Whole.jpg" },
-    { name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg" },
-    { name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg" }
+{ name:"apple", img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
+{ name:"banana", img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
+{ name:"orange", img:"https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg" },
+{ name:"lemon", img:"https://upload.wikimedia.org/wikipedia/commons/1/1c/Lemons.jpg" },
+{ name:"grapes", img:"https://upload.wikimedia.org/wikipedia/commons/3/36/Kyoho-grape.jpg" },
+{ name:"watermelon", img:"https://upload.wikimedia.org/wikipedia/commons/e/ee/Watermelon.jpg" },
+{ name:"strawberry", img:"https://upload.wikimedia.org/wikipedia/commons/2/29/PerfectStrawberry.jpg" },
+{ name:"kiwi", img:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Kiwi_aka.jpg" },
+{ name:"pear", img:"https://upload.wikimedia.org/wikipedia/commons/3/3a/Conference_pear.jpg" },
+{ name:"peach", img:"https://upload.wikimedia.org/wikipedia/commons/9/9f/Nectarine_and_cross_section.jpg" }
 ];
 
 let current;
@@ -105,9 +102,9 @@ newObject();
 startBtn.onclick = async () => {
     startBtn.style.display = "none";
 
-    try {
-        await navigator.mediaDevices.getUserMedia({ audio:true });
-    } catch(e) {
+    try{
+        await navigator.mediaDevices.getUserMedia({audio:true});
+    } catch(e){
         alert("Please allow microphone access.");
         return;
     }
@@ -148,8 +145,9 @@ startBtn.onclick = async () => {
         }
     };
 
-    recognition.onerror = () => restartRecognition();
-    recognition.onend = () => restartRecognition();
+    recognition.onerror = () => { restartRecognition(); };
+    recognition.onend = () => { restartRecognition(); };
+
     recognition.start();
 };
 
@@ -158,6 +156,7 @@ function restartRecognition(){
         try { recognition.start(); } catch(e){}
     }
 }
+
 </script>
 
 </body>

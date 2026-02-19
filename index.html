@@ -3,54 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <title>Party Object Guessing Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 body{
     margin:0;
-    background:#111;
+    background:#0f0f0f;
     color:white;
-    font-family:Arial;
+    font-family:Arial, sans-serif;
     text-align:center;
 }
 
 #score{
-    font-size:35px;
-    margin-top:20px;
+    font-size:32px;
+    margin-top:15px;
 }
 
 #image{
-    margin-top:20px;
-    max-width:90vw;
+    margin-top:15px;
+    width:90vw;
     max-height:50vh;
-    border-radius:20px;
+    object-fit:contain;
+    border-radius:15px;
+    box-shadow:0 0 25px rgba(255,255,255,0.15);
 }
 
 #status{
-    font-size:28px;
-    margin-top:20px;
-    height:40px;
+    font-size:26px;
+    margin-top:15px;
+    height:35px;
 }
 
 #heard{
     font-size:18px;
-    opacity:0.6;
+    opacity:0.7;
     margin-top:10px;
+    padding:0 10px;
 }
 
 #startBtn{
-    margin-top:30px;
-    font-size:28px;
-    padding:20px 40px;
+    margin-top:25px;
+    font-size:26px;
+    padding:18px 35px;
     background:#00ff88;
     color:black;
     border:none;
-    border-radius:15px;
+    border-radius:12px;
 }
+
 .correct{
     color:#00ff88;
 }
-</style>
 
+.listening{
+    color:#00aaff;
+}
+
+</style>
 </head>
 <body>
 
@@ -58,7 +68,7 @@ body{
 
 <img id="image">
 
-<div id="status">Tap Start</div>
+<div id="status">Tap START</div>
 
 <div id="heard"></div>
 
@@ -66,80 +76,120 @@ body{
 
 <script>
 
+// object database
 const objects = [
-{name:"apple",img:"https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600"},
-{name:"car",img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600"},
-{name:"chair",img:"https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=600"},
-{name:"phone",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600"},
-{name:"bottle",img:"https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600"},
-{name:"banana",img:"https://images.unsplash.com/photo-1574226516831-e1dff420e12?w=600"},
-{name:"keyboard",img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600"},
-{name:"shoe",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600"},
-{name:"clock",img:"https://images.unsplash.com/photo-1501139083538-0139583c060f?w=600"},
-{name:"lamp",img:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600"}
+{name:"apple",img:"https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=800"},
+{name:"car",img:"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800"},
+{name:"chair",img:"https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800"},
+{name:"phone",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800"},
+{name:"bottle",img:"https://images.unsplash.com/photo-1523362628745-0c100150b504?w=800"},
+{name:"banana",img:"https://images.unsplash.com/photo-1574226516831-e1dff420e12?w=800"},
+{name:"keyboard",img:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800"},
+{name:"shoe",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800"},
+{name:"clock",img:"https://images.unsplash.com/photo-1501139083538-0139583c060f?w=800"},
+{name:"lamp",img:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800"},
+{name:"mouse",img:"https://images.unsplash.com/photo-1527814050087-3793815479db?w=800"},
+{name:"backpack",img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800"}
 ];
 
 let current;
-let score=0;
+let score = 0;
+let recognition;
+let listening = false;
 
-const image=document.getElementById("image");
-const scoreText=document.getElementById("score");
-const status=document.getElementById("status");
-const heard=document.getElementById("heard");
-const startBtn=document.getElementById("startBtn");
+const image = document.getElementById("image");
+const scoreText = document.getElementById("score");
+const status = document.getElementById("status");
+const heard = document.getElementById("heard");
+const startBtn = document.getElementById("startBtn");
 
 function newObject(){
-current=objects[Math.floor(Math.random()*objects.length)];
-image.src=current.img;
+
+    current = objects[Math.floor(Math.random()*objects.length)];
+
+    image.src = current.img;
 }
 
 newObject();
 
-startBtn.onclick=()=>{
+startBtn.onclick = async () => {
 
-startBtn.style.display="none";
+    startBtn.style.display = "none";
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    try{
+        await navigator.mediaDevices.getUserMedia({audio:true});
+    }
+    catch(e){
+        alert("Microphone permission denied. Please allow mic access.");
+        return;
+    }
 
-const recognition=new SpeechRecognition();
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-recognition.continuous=true;
-recognition.interimResults=true;
-recognition.lang="en-US";
+    if(!SpeechRecognition){
+        alert("Speech recognition not supported. Use Safari or Chrome.");
+        return;
+    }
 
-status.innerText="Listening...";
+    recognition = new SpeechRecognition();
 
-recognition.onresult=(event)=>{
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
 
-const text=event.results[event.results.length-1][0].transcript.toLowerCase();
+    recognition.onstart = () => {
+        listening = true;
+        status.innerText = "Listening...";
+        status.className = "listening";
+    };
 
-heard.innerText="Heard: "+text;
+    recognition.onresult = (event) => {
 
-if(text.includes(current.name)){
+        const text = event.results[event.results.length-1][0].transcript.toLowerCase().trim();
 
-score++;
-scoreText.innerText="Score: "+score;
+        heard.innerText = "Heard: " + text;
 
-status.innerText="CORRECT!";
-status.className="correct";
+        if(text.includes(current.name)){
 
-setTimeout(()=>{
-status.innerText="Listening...";
-status.className="";
-newObject();
-},1000);
+            score++;
+            scoreText.innerText = "Score: " + score;
+
+            status.innerText = "CORRECT!";
+            status.className = "correct";
+
+            setTimeout(()=>{
+                newObject();
+                status.innerText = "Listening...";
+                status.className = "listening";
+            },1000);
+
+        }
+
+    };
+
+    recognition.onerror = () => {
+        restartRecognition();
+    };
+
+    recognition.onend = () => {
+        restartRecognition();
+    };
+
+    recognition.start();
+};
+
+function restartRecognition(){
+
+    if(recognition && listening){
+
+        try{
+            recognition.start();
+        }
+        catch(e){}
+
+    }
 
 }
-
-};
-
-recognition.onend=()=>{
-recognition.start();
-};
-
-recognition.start();
-
-};
 
 </script>
 
